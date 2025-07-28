@@ -9,3 +9,5 @@ huggingface_hub
 langchain_huggingface
 transformers
 groq
+langchain_community
+pypdf
