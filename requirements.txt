@@ -11,3 +11,7 @@ transformers
 groq
 langchain_community
 pypdf
+beautifulsoup4
+bs4
+chromadb
+langchain_chroma
