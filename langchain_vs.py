@@ -3,6 +3,17 @@ from langchain.schema import Document
 #from langchain_community.vectorstores import Chroma
 from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
+from langchain_ollama import ChatOllama
+
+from langchain_openai import ChatOpenAI
+
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+from langchain_core.prompts import PromptTemplate
+
+from langchain.chains import RetrievalQA
 
 document1= Document(
     page_content='Virat kohli is one of the most successful and consistant batsman in the world. He has scored more than 70 international centuries and is known for his aggressive batting style.',
@@ -25,15 +36,12 @@ document4 = Document(
 )
 
 document5 = Document(
-    page_content='Yuzvendra Chahal is a crafty leg-spinner known for his wicket-taking ability in the middle overs. He has been a standout performer for Rajasthan Royals, often turning matches with his variations.',
+    page_content='Yuzvendra Chahal is a world class bowlers crafty leg-spinner known for his wicket-taking ability in the middle overs. He has been a standout performer for Rajasthan Royals, often turning matches with his variations.',
     metadata={'team': 'Rajasthan Royals'}
 )
 
 
 documents = [document1, document2, document3, document4, document5]
-
-
-
 
 vector_store = Chroma(
     embedding_function=OllamaEmbeddings(model="granite-embedding:latest"),
@@ -43,5 +51,36 @@ vector_store = Chroma(
 
 vector_store.add_documents(documents)
 
-print(vector_store.get(include=['embeddings','documents','metadatas']))
+#print(vector_store.get(include=['embeddings','documents','metadatas']))
 
+#llm = ChatOllama(model='llama3.2:latest')
+llm = ChatOpenAI(model='gpt-4o-mini', max_tokens=500)
+prompt_template = """
+   
+    You are an expert in cricket statistics and player analysis. Given the following documents about cricket players, answer the question based on the information provided.
+    Context:{context}
+
+    question: {question}    
+    Answer:
+
+    """
+
+prompt = PromptTemplate(template=prompt_template, input_variables=['context', 'question'])
+
+
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=vector_store.as_retriever(search_kwargs={"k": 3}),
+    return_source_documents=True,
+    chain_type_kwargs={"prompt": prompt}
+)
+
+#query = "Who among these are the bowlers?"
+
+query ="who all are bowlers?"
+
+result = qa_chain.invoke({"query": query})
+
+print("Answer:", result['result'])
+
+print("Source Documents:",result['source_documents'])   
