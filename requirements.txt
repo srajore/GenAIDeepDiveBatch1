@@ -18,3 +18,4 @@ langchain_chroma
 faiss-cpu
 langchain-pinecone 
 pinecone-client
+langchain-aws
